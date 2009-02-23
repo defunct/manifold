@@ -10,4 +10,6 @@ public interface Sender
     public void send(ByteBuffer...data);
     
     public void close();
+    
+    public void setWrapper(Wrapper wrapper);
 }

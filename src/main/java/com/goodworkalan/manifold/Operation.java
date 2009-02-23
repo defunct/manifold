@@ -28,7 +28,11 @@ public class Operation implements Runnable
                 close = true;
             }
         }
-        if (close && !write)
+        if (write)
+        {
+            conversation.manifold.send(conversation);
+        }
+        else if (close)
         {
             conversation.manifold.close(conversation);
         }

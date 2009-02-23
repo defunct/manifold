@@ -33,6 +33,8 @@ public class Conversation implements Sender
     /** The session state. */
     final Session session;
     
+    Wrapper wrapper = new NullWrapper();
+    
     boolean registered;
     
     boolean closed;
@@ -54,21 +56,33 @@ public class Conversation implements Sender
     
     public void send(Collection<ByteBuffer> data)
     {
-        out.addAll(data);
-        manifold.send(this);
+        for (ByteBuffer unwrapped : data)
+        {
+            for (ByteBuffer wrapped : wrapper.wrap(unwrapped, this))
+            {
+                out.add(wrapped);
+            }
+        }
     }
     
     public void send(ByteBuffer...data)
     {
         for (int i = 0; i < data.length; i++)
         {
-            out.add(data[i]);
+            for (ByteBuffer wrapped : wrapper.wrap(data[i], this))
+            {
+                out.add(wrapped);
+            }
         }
-        manifold.send(this);
     }
     
     public void close()
     {
         closed = true;
+    }
+    
+    public void setWrapper(Wrapper wrapper)
+    {
+        this.wrapper = wrapper;
     }
 }

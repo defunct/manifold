@@ -226,14 +226,17 @@ public class Manifold
             while ((changeOps = opChanges.poll()) != null)
             {
                 Conversation conversation = conversations.get(changeOps.socketChannel);
-                if (conversation.registered)
+                if (conversation != null)
                 {
-                    changeOps.socketChannel.keyFor(selector).interestOps(changeOps.ops);
-                }
-                else
-                {
-                    changeOps.socketChannel.register(selector, changeOps.ops);
-                    conversation.registered = true; 
+                    if (conversation.registered)
+                    {
+                        changeOps.socketChannel.keyFor(selector).interestOps(changeOps.ops);
+                    }
+                    else
+                    {
+                        changeOps.socketChannel.register(selector, changeOps.ops);
+                        conversation.registered = true; 
+                    }
                 }
             }
             

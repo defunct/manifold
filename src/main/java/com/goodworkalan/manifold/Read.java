@@ -16,6 +16,9 @@ public class Read implements Runnable
     
     public void run()
     {
-        conversation.session.read(data, conversation);
+        for (ByteBuffer unwapped : conversation.wrapper.unwrap(data, conversation))
+        {
+            conversation.session.read(unwapped, conversation);
+        }
     }
 }
