@@ -2,17 +2,16 @@ package com.goodworkalan.manifold;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -29,21 +28,23 @@ public class Manifold
     
     private final ServerSocketChannel serverSocketChannel;
     
+    private final Queue<Plenum> plenums;
+    
     private final Selector selector;
     
-    private final ByteBuffer in;
-    
     private final Map<SocketChannel, Conversation> conversations;
-    
-    private final Queue<ChangeOps> opChanges;
-    
-    private final Queue<Conversation> closing;
     
     private final ExecutorService executorService;
     
     private final SessionFactory sessionFactory;
     
     private final AtomicBoolean terminated;
+    
+    private final int minimumLatency = 500;
+    
+    private final int maximumLatency = 3000;
+    
+    private final int maximumPlenums = 12;
     
     public Manifold(SessionFactory sessionFactory, ExecutorService executorService) throws IOException
     {
@@ -55,9 +56,7 @@ public class Manifold
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
         this.selector = selector;
-        this.in = ByteBuffer.allocateDirect(1024 * 1024);
-        this.opChanges = new ConcurrentLinkedQueue<ChangeOps>();
-        this.closing = new ConcurrentLinkedQueue<Conversation>();
+        this.plenums = new LinkedList<Plenum>();
         this.conversations = new ConcurrentHashMap<SocketChannel, Conversation>();
         this.executorService = executorService;
         this.sessionFactory = sessionFactory;
@@ -74,28 +73,7 @@ public class Manifold
         executorService.execute(new Operation(conversation));
     }
 
-    void close(Conversation conversation)
-    {
-        closing.add(conversation);
-        selector.wakeup();
-    }
 
-    void listen(Conversation conversation)
-    {
-        ChangeOps changeOps = new ChangeOps(conversation.socketChannel, SelectionKey.OP_READ);
-        opChanges.add(changeOps);
-        selector.wakeup();
-    }
-    
-    void send(Conversation conversation)
-    {
-        ChangeOps changeOps = new ChangeOps(conversation.socketChannel, SelectionKey.OP_WRITE);
-        synchronized (opChanges)
-        {
-            opChanges.add(changeOps);
-        }
-        selector.wakeup();
-    }
 
     private void accept(SelectionKey key) throws IOException
     {
@@ -112,86 +90,66 @@ public class Manifold
         }
         else
         {
-            socketChannel.configureBlocking(false);
-            
-            Conversation conversation = new Conversation(this, socketChannel, session);
-            conversation.operations.add(new Accepted(conversation));
-            conversations.put(socketChannel, conversation);
-    
-            executorService.execute(new Operation(conversation));
-        }
-    }
-    
-    private void read(SelectionKey key) throws IOException
-    {
-        SocketChannel socketChannel = (SocketChannel) key.channel();
-        in.clear();
-        int read = -1;
-        try
-        {
-            read = socketChannel.read(in);
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-        
-        Conversation conversation = conversations.get(socketChannel);
-        if (read == -1)
-        {
-            // Either read returned -1 or else it threw an I/O exception. Either
-            // way we are going to close the socket and cancel the key.
-            close(conversation);
-        }
-        else if (key.isValid())
-        {
-            byte[] data = new byte[read];
-            
-            in.flip();
-            in.get(data);
-    
-            synchronized (conversation.operations)
-            {
-                conversation.operations.add(new Read(conversation, ByteBuffer.wrap(data)));
-            }
-            
-            executorService.execute(new Operation(conversation));
-        }
-    }
-    
-    private void write(SelectionKey key) throws IOException
-    {
-        SocketChannel socketChannel = (SocketChannel) key.channel();
-        Conversation conversation = conversations.get(socketChannel);
-        boolean close = false;
-        synchronized (conversation)
-        {
-            Queue<ByteBuffer> queue = conversation.out;
-            
-            ByteBuffer data = null;
-            // Write until the queue is empty.
-            while ((data = queue.peek()) != null)
-            {
-                socketChannel.write(data);
-                if (data.remaining() != 0)
-                {
-                    // The socket buffer has filled up so try again later.
-                    break;
-                }
-                queue.remove();
-            }
-            if (queue.isEmpty())
-            {
-                key.interestOps(SelectionKey.OP_READ);
-            }
-            close = conversation.closed;
-        }
-        if (close)
-        {
-            close(conversation);
-        }
-    }
+            Plenum delegate = null;
 
+            Plenum dillying = null;
+            Plenum dallying = null;
+            int min = -1;
+            int plenumCount = plenums.size();
+            int remaining = plenumCount;
+            while (remaining != 0 && (min < minimumLatency || (dillying != null && dallying == null)))
+            {
+                int bestOf = Math.min(remaining, 5);
+                while (bestOf-- != 0)
+                {
+                    Plenum plenum = plenums.poll();
+                     
+                    int average = plenum.getAverage();
+                    
+                    if (average > min)
+                    {
+                        min = average;
+                        delegate = plenum;
+                    }
+
+                    if (average > maximumLatency && plenumCount > 1)
+                    {
+                        if (dillying == null)
+                        {
+                            dillying = plenum; 
+                            plenums.add(plenum);
+                        }
+                        else
+                        {
+                            dallying = plenum;
+                        }
+                    }
+                    else
+                    {
+                        plenums.add(plenum);
+                    }
+                }
+                
+                remaining--;
+            }
+            
+            if (dillying != null && dallying != null)
+            {
+                dallying.handoff(dillying);
+            }
+            
+            if (delegate == null || (min < minimumLatency && plenumCount < maximumPlenums))
+            {
+                delegate = new Plenum(executorService);
+                new Thread(delegate).start();
+                plenums.add(delegate);
+            }
+            
+            Conversation conversation = new Conversation(delegate, socketChannel, session);
+            delegate.accept(conversation);
+        }
+    }
+    
     public void bind() throws IOException
     {
         running.countDown();
@@ -222,63 +180,15 @@ public class Manifold
     {
         while (selection.select())
         {
-            ChangeOps changeOps;
-            while ((changeOps = opChanges.poll()) != null)
-            {
-                Conversation conversation = conversations.get(changeOps.socketChannel);
-                if (conversation != null)
-                {
-                    if (conversation.registered)
-                    {
-                        changeOps.socketChannel.keyFor(selector).interestOps(changeOps.ops);
-                    }
-                    else
-                    {
-                        changeOps.socketChannel.register(selector, changeOps.ops);
-                        conversation.registered = true; 
-                    }
-                }
-            }
-            
-            Conversation close;
-            while ((close = closing.poll()) != null)
-            {
-                synchronized (close.operations)
-                {
-                    close.operations.clear();
-                    close.operations.add(new Close(close));
-                }
-                if (close.registered)
-                {
-                    close.socketChannel.keyFor(selector).cancel();
-                }
-                close.socketChannel.close();
-                executorService.execute(new Operation(close));
-                conversations.remove(close.socketChannel);
-            }
-    
             Iterator<SelectionKey> selectedKeys = selector.selectedKeys().iterator();
             while (selectedKeys.hasNext())
             {
                 SelectionKey key = selectedKeys.next();
                 selectedKeys.remove();
                 
-                if (!key.isValid())
-                {
-                    continue;
-                }
-                
-                if (key.isAcceptable())
+                if (key.isValid() && key.isAcceptable())
                 {
                     accept(key);
-                }
-                else if (key.isReadable())
-                {
-                    read(key);
-                }
-                else if (key.isWritable())
-                {
-                    write(key);
                 }
             }
         }

@@ -30,11 +30,11 @@ public class Operation implements Runnable
         }
         if (write)
         {
-            conversation.manifold.send(conversation);
+            conversation.plenum.send(conversation);
         }
         else if (close)
         {
-            conversation.manifold.close(conversation);
+            conversation.plenum.close(conversation);
         }
     }
 }

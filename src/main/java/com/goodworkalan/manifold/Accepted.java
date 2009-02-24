@@ -14,7 +14,7 @@ public class Accepted implements Runnable
         conversation.session.accepted(conversation);
         if (!conversation.closed && conversation.out.isEmpty())
         {
-            conversation.manifold.listen(conversation);
+            conversation.plenum.listen(conversation);
         }
     }
 }

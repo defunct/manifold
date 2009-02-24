@@ -20,7 +20,7 @@ import java.util.Queue;
  */
 public class Conversation implements Sender
 {
-    final Manifold manifold;
+    final Plenum plenum;
     
     /** The underlying socket channel. */
     final SocketChannel socketChannel;
@@ -47,9 +47,9 @@ public class Conversation implements Sender
      * @param session
      *            The session state.
      */
-    public Conversation(Manifold manifold, SocketChannel socketChannel, Session session)
+    public Conversation(Plenum plenum, SocketChannel socketChannel, Session session)
     {
-        this.manifold = manifold;
+        this.plenum = plenum;
         this.socketChannel = socketChannel;
         this.session = session;
     }

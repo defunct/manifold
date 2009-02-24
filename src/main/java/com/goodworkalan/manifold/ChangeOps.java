@@ -1,16 +1,15 @@
 package com.goodworkalan.manifold;
 
-import java.nio.channels.SocketChannel;
 
 public class ChangeOps
 {
-    public final SocketChannel socketChannel;
+    public final Conversation conversation;
     
     public final int ops;
     
-    public ChangeOps(SocketChannel socketChannel, int ops)
+    public ChangeOps(Conversation conversation, int ops)
     {
-        this.socketChannel = socketChannel;
+        this.conversation = conversation;
         this.ops = ops;
     }
 }
