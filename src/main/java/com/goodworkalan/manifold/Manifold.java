@@ -24,6 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class Manifold
 {
+    private final Thread thread;
+    
     private final CountDownLatch running;
     
     private final ServerSocketChannel serverSocketChannel;
@@ -62,6 +64,21 @@ public class Manifold
         this.sessionFactory = sessionFactory;
         this.terminated = new AtomicBoolean();
         this.running = new CountDownLatch(1);
+        this.thread = new Thread()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    bind();
+                }
+                catch (IOException e)
+                {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
     }
     
     void terminate(Conversation conversation)
@@ -150,7 +167,23 @@ public class Manifold
         }
     }
     
-    public void bind() throws IOException
+    public void start()
+    {
+        thread.start();
+    }
+    
+    public void join()
+    {
+        try
+        {
+            thread.join();
+        }
+        catch (InterruptedException e)
+        {
+        }
+    }
+    
+    private void bind() throws IOException
     {
         running.countDown();
         bind(new NormalSelection(selector, terminated));

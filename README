@@ -1,0 +1,17 @@
+MANIFOLD
+
+A framework for a non-blocking server.
+
+    Issues and Tasks: http://blogometer.com/trac/incubator
+    Source: http://github.com/bigeasy/manifold/tree/master
+    Contact: alan@blogometer.com
+
+    Notes: http://delicious.com/alan/nio
+
+PURPOSE
+
+Manifold is the basis of an IMAP and SMTP server.
+
+MOTIVATION
+
+Created a shared server framework for two mail server applications.
