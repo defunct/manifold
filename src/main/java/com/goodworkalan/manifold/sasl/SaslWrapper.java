@@ -10,23 +10,31 @@ import javax.security.sasl.SaslServer;
 import com.goodworkalan.manifold.Sender;
 import com.goodworkalan.manifold.Wrapper;
 
+// TODO Document.
 public class SaslWrapper implements Wrapper
 {
+    // TODO Document.
     private final SaslServer saslServer;
     
+    // TODO Document.
     private byte[] temporary = new byte[1024];
     
+    // TODO Document.
     int incomingSize = 0;
     
+    // TODO Document.
     int ougoingSize = 0;
     
+    // TODO Document.
     private ByteBuffer incoming = ByteBuffer.allocate(1024);
 
+    // TODO Document.
     public SaslWrapper(SaslServer saslServer)
     {
         this.saslServer = saslServer;
     }
     
+    // TODO Document.
     public ByteBuffer[] wrap(ByteBuffer unwrapped, Sender sender)
     {
         int size = unwrapped.remaining();
@@ -50,6 +58,7 @@ public class SaslWrapper implements Wrapper
         }
     }
     
+    // TODO Document.
     public ByteBuffer[] unwrap(ByteBuffer wrapped, Sender sender)
     {
 

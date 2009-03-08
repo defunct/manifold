@@ -20,6 +20,7 @@ import javax.net.ssl.SSLSession;
 import com.goodworkalan.manifold.Sender;
 import com.goodworkalan.manifold.Wrapper;
 
+// TODO Document.
 public class SslHandshakeWrapper implements Wrapper
 {
     /** An empty buffer to wrap.  */
@@ -31,6 +32,7 @@ public class SslHandshakeWrapper implements Wrapper
     /** A buffer for incoming SSL encrypted data. */
     private ByteBuffer incoming;
 
+    // TODO Document.
     public SslHandshakeWrapper(SSLEngine sslEngine)
     {
         this.sslEngine = sslEngine;
@@ -38,6 +40,7 @@ public class SslHandshakeWrapper implements Wrapper
         this.incoming.limit(0);
     }
     
+    // TODO Document.
     public ByteBuffer[] unwrap(ByteBuffer wrapped, Sender sender)
     {
         SSLSession session = sslEngine.getSession();
@@ -117,6 +120,7 @@ public class SslHandshakeWrapper implements Wrapper
         }       
     }
 
+    // TODO Document.
     public ByteBuffer[] wrap(ByteBuffer unwrapped, Sender sender)
     {
         try

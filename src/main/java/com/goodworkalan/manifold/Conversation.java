@@ -20,6 +20,7 @@ import java.util.Queue;
  */
 public class Conversation implements Sender
 {
+    // TODO Document.
     final Plenum plenum;
     
     /** The underlying socket channel. */
@@ -28,15 +29,19 @@ public class Conversation implements Sender
     /** A linked list of operations to perform. */
     final Queue<Runnable> operations = new LinkedList<Runnable>();
     
+    // TODO Document.
     final Queue<ByteBuffer> out = new LinkedList<ByteBuffer>();
     
     /** The session state. */
     final Session session;
     
+    // TODO Document.
     Wrapper wrapper = new NullWrapper();
     
+    // TODO Document.
     boolean registered;
     
+    // TODO Document.
     boolean closed;
 
     /**
@@ -54,6 +59,7 @@ public class Conversation implements Sender
         this.session = session;
     }
     
+    // TODO Document.
     public void send(Collection<ByteBuffer> data)
     {
         for (ByteBuffer unwrapped : data)
@@ -65,6 +71,7 @@ public class Conversation implements Sender
         }
     }
     
+    // TODO Document.
     public void send(ByteBuffer...data)
     {
         for (int i = 0; i < data.length; i++)
@@ -76,11 +83,13 @@ public class Conversation implements Sender
         }
     }
     
+    // TODO Document.
     public void close()
     {
         closed = true;
     }
     
+    // TODO Document.
     public void setWrapper(Wrapper wrapper)
     {
         this.wrapper = wrapper;

@@ -24,30 +24,43 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class Manifold
 {
+    // TODO Document.
     private final Thread thread;
     
+    // TODO Document.
     private final CountDownLatch running;
     
+    // TODO Document.
     private final ServerSocketChannel serverSocketChannel;
     
+    // TODO Document.
     private final Queue<Plenum> plenums;
     
+    // TODO Document.
     private final Selector selector;
     
+    // TODO Document.
     private final Map<SocketChannel, Conversation> conversations;
     
+    // TODO Document.
     private final ExecutorService executorService;
     
+    // TODO Document.
     private final SessionFactory sessionFactory;
     
+    // TODO Document.
     private final AtomicBoolean terminated;
     
+    // TODO Document.
     private final int minimumLatency = 500;
     
+    // TODO Document.
     private final int maximumLatency = 3000;
     
+    // TODO Document.
     private final int maximumPlenums = 12;
     
+    // TODO Document.
     public Manifold(SessionFactory sessionFactory, ExecutorService executorService) throws IOException
     {
         serverSocketChannel = ServerSocketChannel.open();
@@ -81,6 +94,7 @@ public class Manifold
         };
     }
     
+    // TODO Document.
     void terminate(Conversation conversation)
     {
         synchronized (conversation)
@@ -90,8 +104,7 @@ public class Manifold
         executorService.execute(new Operation(conversation));
     }
 
-
-
+    // TODO Document.
     private void accept(SelectionKey key) throws IOException
     {
         // For an accept to be pending the channel must be a server socket channel.
@@ -167,11 +180,13 @@ public class Manifold
         }
     }
     
+    // TODO Document.
     public void start()
     {
         thread.start();
     }
     
+    // TODO Document.
     public void join()
     {
         try
@@ -183,6 +198,7 @@ public class Manifold
         }
     }
     
+    // TODO Document.
     private void bind() throws IOException
     {
         running.countDown();
@@ -198,6 +214,7 @@ public class Manifold
         serverSocketChannel.close();
     }
     
+    // TODO Document.
     public void waitForStartup()
     {
         try
@@ -209,6 +226,7 @@ public class Manifold
         }
     }
     
+    // TODO Document.
     private void bind(Selection selection) throws IOException
     {
         while (selection.select())
@@ -227,6 +245,7 @@ public class Manifold
         }
     }
     
+    // TODO Document.
     public void shutdown()
     {
         terminated.set(true);

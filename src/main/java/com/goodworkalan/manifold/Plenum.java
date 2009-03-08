@@ -15,32 +15,46 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /** This will the thread for the read/write sockets. */
+// TODO Document.
 public class Plenum implements Runnable
 {
+    // TODO Document.
     private final ExecutorService executorService;
     
+    // TODO Document.
     private final Selector selector;
 
+    // TODO Document.
     private final ByteBuffer in;
     
+    // TODO Document.
     private final Queue<Conversation> accepting;
 
+    // TODO Document.
     private final Queue<ChangeOps> opChanges;
     
+    // TODO Document.
     private final Queue<Conversation> closing;
     
+    // TODO Document.
     private final AtomicInteger average;
     
+    // TODO Document.
     private final AtomicBoolean shutdown;
     
+    // TODO Document.
     private final AtomicReference<Plenum> successor;
 
+    // TODO Document.
     private int averageSum;
 
+    // TODO Document.
     private int averageCount;
     
+    // TODO Document.
     private long then;
 
+    // TODO Document.
     public Plenum(ExecutorService executorService) throws IOException
     {
         this.executorService = executorService;
@@ -55,17 +69,20 @@ public class Plenum implements Runnable
         this.then = System.currentTimeMillis() - 60000;
     }
     
+    // TODO Document.
     public int getAverage()
     {
         return average.get();
     }
     
+    // TODO Document.
     public void accept(Conversation conversation)
     {
         accepting.add(conversation);
         selector.wakeup();
     }
     
+    // TODO Document.
     public void adopt(Conversation conversation, int ops)
     {
         ChangeOps changeOps = new ChangeOps(conversation, ops);
@@ -73,6 +90,7 @@ public class Plenum implements Runnable
         selector.wakeup();
     }
     
+    // TODO Document.
     public void handoff(Plenum plenum)
     {
         successor.set(plenum);
@@ -80,12 +98,14 @@ public class Plenum implements Runnable
         selector.wakeup();
     }
     
+    // TODO Document.
     public void termiante()
     {
         shutdown.set(true);
         selector.wakeup();
     }
 
+    // TODO Document.
     private void terminate() throws IOException
     {
         if (successor.get() != null)
@@ -122,6 +142,7 @@ public class Plenum implements Runnable
 
     }
 
+    // TODO Document.
     public void run()
     {
         boolean terminated = false;
@@ -230,6 +251,7 @@ public class Plenum implements Runnable
         }
     }
 
+    // TODO Document.
     private void read(SelectionKey key)
     {
         SocketChannel socketChannel = (SocketChannel) key.channel();
@@ -267,6 +289,7 @@ public class Plenum implements Runnable
         }
     }
 
+    // TODO Document.
     private void write(SelectionKey key) throws IOException
     {
         SocketChannel socketChannel = (SocketChannel) key.channel();
@@ -300,12 +323,14 @@ public class Plenum implements Runnable
         }
     }
 
+    // TODO Document.
     void close(Conversation conversation)
     {
         closing.add(conversation);
         selector.wakeup();
     }
 
+    // TODO Document.
     void listen(Conversation conversation)
     {
         ChangeOps changeOps = new ChangeOps(conversation, SelectionKey.OP_READ);
@@ -313,6 +338,7 @@ public class Plenum implements Runnable
         selector.wakeup();
     }
     
+    // TODO Document.
     void send(Conversation conversation)
     {
         ChangeOps changeOps = new ChangeOps(conversation, SelectionKey.OP_WRITE);

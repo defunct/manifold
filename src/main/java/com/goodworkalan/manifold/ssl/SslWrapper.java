@@ -12,16 +12,22 @@ import javax.net.ssl.SSLSession;
 import com.goodworkalan.manifold.Sender;
 import com.goodworkalan.manifold.Wrapper;
 
+// TODO Document.
 public class SslWrapper implements Wrapper
 {
+    // TODO Document.
     private final SSLEngine sslEngine;
     
+    // TODO Document.
     private ByteBuffer unencrypted;
     
+    // TODO Document.
     private ByteBuffer incoming;
     
+    // TODO Document.
     private ByteBuffer encrypted;
 
+    // TODO Document.
     public SslWrapper(SSLEngine sslEngine)
     {
         SSLSession sslSession = sslEngine.getSession();
@@ -32,6 +38,7 @@ public class SslWrapper implements Wrapper
         this.encrypted = ByteBuffer.allocate(sslSession.getPacketBufferSize());
     }
     
+    // TODO Document.
     public ByteBuffer[] wrap(ByteBuffer unwrapped, Sender sender)
     {
         try
@@ -90,6 +97,7 @@ public class SslWrapper implements Wrapper
         }
     }
     
+    // TODO Document.
     public ByteBuffer[] unwrap(ByteBuffer wrapped, Sender sender)
     {
         try

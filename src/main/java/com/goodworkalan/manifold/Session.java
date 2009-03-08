@@ -32,7 +32,9 @@ public interface Session
      */
     public void read(ByteBuffer data, Sender sender);
     
+    // TODO Document.
     public void terminate(Sender sender);
     
-    public void close();
+    // TODO Document.
+   public void close();
 }
