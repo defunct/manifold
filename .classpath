@@ -3,7 +3,7 @@
   <classpathentry kind="src" path="src/main/java"/>
   <classpathentry kind="output" path="target/classes"/>
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-  <classpathentry kind="var" path="M2_REPO/org/testng/testng/5.10/testng-5.10.jar" sourcepath="M2_REPO/org/testng/testng/5.10/testng-5.10-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/testng/testng-jdk15/5.10/testng-jdk15-5.10.jar" sourcepath="M2_REPO/org/testng/testng-jdk15/5.10/testng-jdk15-5.10-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/mockito/mockito-core/1.6/mockito-core-1.6.jar"/>
   <classpathentry kind="var" path="M2_REPO/junit/junit/3.8.1/junit-3.8.1.jar" sourcepath="M2_REPO/junit/junit/3.8.1/junit-3.8.1-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/hamcrest/hamcrest-core/1.1/hamcrest-core-1.1.jar" sourcepath="M2_REPO/org/hamcrest/hamcrest-core/1.1/hamcrest-core-1.1-sources.jar"/>
