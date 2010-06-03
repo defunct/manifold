@@ -108,21 +108,18 @@ public class SaslWrapper implements Wrapper
                     }
                     break;
                 }
-                else
+                if (temporary.length < incomingSize)
                 {
-                    if (temporary.length < incomingSize)
-                    {
-                        temporary = new byte[incomingSize];
-                    }
-                    int fromIncoming = Math.min(incoming.remaining(), incomingSize);
-                    incoming.get(temporary, 0, fromIncoming);
-                    if (fromIncoming < incomingSize)
-                    {
-                        wrapped.get(temporary, fromIncoming, incomingSize - fromIncoming);
-                    }
-                    byteBuffers.add(ByteBuffer.wrap(saslServer.wrap(temporary, 0, incomingSize)));
-                    incomingSize = 0;
+                    temporary = new byte[incomingSize];
                 }
+                int fromIncoming = Math.min(incoming.remaining(), incomingSize);
+                incoming.get(temporary, 0, fromIncoming);
+                if (fromIncoming < incomingSize)
+                {
+                    wrapped.get(temporary, fromIncoming, incomingSize - fromIncoming);
+                }
+                byteBuffers.add(ByteBuffer.wrap(saslServer.wrap(temporary, 0, incomingSize)));
+                incomingSize = 0;
             }
 
             return byteBuffers.toArray(new ByteBuffer[byteBuffers.size()]);
