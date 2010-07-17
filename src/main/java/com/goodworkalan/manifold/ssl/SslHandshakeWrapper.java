@@ -21,9 +21,8 @@ import com.goodworkalan.manifold.Sender;
 import com.goodworkalan.manifold.Wrapper;
 
 // TODO Document.
-public class SslHandshakeWrapper implements Wrapper
-{
-    /** An empty buffer to wrap.  */
+public class SslHandshakeWrapper implements Wrapper {
+    /** An empty buffer to wrap. */
     private final static ByteBuffer BLANK = ByteBuffer.allocate(0);
 
     /** The SSL engine to use for this socket. */
@@ -33,40 +32,32 @@ public class SslHandshakeWrapper implements Wrapper
     private ByteBuffer incoming;
 
     // TODO Document.
-    public SslHandshakeWrapper(SSLEngine sslEngine)
-    {
+    public SslHandshakeWrapper(SSLEngine sslEngine) {
         this.sslEngine = sslEngine;
         this.incoming = ByteBuffer.allocate(sslEngine.getSession().getPacketBufferSize());
         this.incoming.limit(0);
     }
     
     // TODO Document.
-    public ByteBuffer[] unwrap(ByteBuffer wrapped, Sender sender)
-    {
+    public ByteBuffer[] unwrap(ByteBuffer wrapped, Sender sender) {
         SSLSession session = sslEngine.getSession();
         
         ByteBuffer destination = ByteBuffer.allocate(session.getApplicationBufferSize());
-        try
-        {
+        try {
             boolean finished = false;
             int wrappedLimit = wrapped.limit();
             SSLEngineResult.HandshakeStatus handShakeStatus;
             SSLEngineResult.Status status = OK;
-            do
-            {
+            do {
                 int incomingRemaining = incoming.remaining();
 
                 incoming.compact();
 
-                if (incomingRemaining < incoming.capacity() && wrappedLimit - wrapped.position() != 0)
-                {
+                if (incomingRemaining < incoming.capacity() && wrappedLimit - wrapped.position() != 0) {
                     int overflow = (wrappedLimit - wrapped.position()) - incoming.remaining();
-                    if (overflow > 0)
-                    {
+                    if (overflow > 0) {
                         wrapped.limit(wrapped.position() + incoming.remaining());
-                    }
-                    else
-                    {
+                    } else {
                         wrapped.limit(wrappedLimit);
                     }
                     incomingRemaining += wrapped.remaining();
@@ -76,8 +67,7 @@ public class SslHandshakeWrapper implements Wrapper
                 incoming.flip();
                 
                 handShakeStatus = sslEngine.getHandshakeStatus();
-                switch (handShakeStatus)
-                {
+                switch (handShakeStatus) {
                 case NOT_HANDSHAKING:
                     sslEngine.beginHandshake();
                     break;
@@ -85,8 +75,7 @@ public class SslHandshakeWrapper implements Wrapper
                     break;
                 case NEED_TASK:
                     Runnable runnable = null;
-                    while ((runnable = sslEngine.getDelegatedTask()) != null)
-                    {
+                    while ((runnable = sslEngine.getDelegatedTask()) != null) {
                         runnable.run();
                     }
                     break;
@@ -107,40 +96,32 @@ public class SslHandshakeWrapper implements Wrapper
                 &&
                 (handShakeStatus == NOT_HANDSHAKING ||handShakeStatus == NEED_UNWRAP || handShakeStatus == NEED_TASK));
             
-            if (finished)
-            {
+            if (finished) {
                 sender.setWrapper(new SslWrapper(sslEngine));
             }
             
             return new ByteBuffer[0];
-        }
-        catch (SSLException e)
-        {
+        } catch (SSLException e) {
             throw new RuntimeException("Unable to get going here");
-        }       
+        }     
     }
 
     // TODO Document.
-    public ByteBuffer[] wrap(ByteBuffer unwrapped, Sender sender)
-    {
-        try
-        {
+    public ByteBuffer[] wrap(ByteBuffer unwrapped, Sender sender) {
+        try {
             List<ByteBuffer> byteBuffers = new ArrayList<ByteBuffer>();
             SSLEngineResult.HandshakeStatus handShakeStatus;
             boolean finished = false;
-            do
-            {
+            do {
                 handShakeStatus = sslEngine.getHandshakeStatus();
-                switch (handShakeStatus)
-                {
+                switch (handShakeStatus) {
                 case NOT_HANDSHAKING:
                     break;
                 case FINISHED:
                     break;
                 case NEED_TASK:
                     Runnable runnable = null;
-                    while ((runnable = sslEngine.getDelegatedTask()) != null)
-                    {
+                    while ((runnable = sslEngine.getDelegatedTask()) != null) {
                         runnable.run();
                     }
                     break;
@@ -148,8 +129,7 @@ public class SslHandshakeWrapper implements Wrapper
                     ByteBuffer packet = ByteBuffer.allocate(sslEngine.getSession().getPacketBufferSize());
                     SSLEngineResult result = sslEngine.wrap(BLANK, packet);
                     finished = result.getHandshakeStatus() == FINISHED;
-                    switch (result.getStatus())
-                    {
+                    switch (result.getStatus()) {
                     case OK:
                         packet.flip();
                         byteBuffers.add(packet);
@@ -161,15 +141,12 @@ public class SslHandshakeWrapper implements Wrapper
                 }
             } while (handShakeStatus == NEED_WRAP || handShakeStatus == NEED_TASK);
 
-            if (finished)
-            {
+            if (finished) {
                 sender.setWrapper(new SslWrapper(sslEngine));
             }
             
             return byteBuffers.toArray(new ByteBuffer[byteBuffers.size()]);
-        }
-        catch (SSLException e)
-        {
+        } catch (SSLException e) {
             return new ByteBuffer[0];
         }
     }

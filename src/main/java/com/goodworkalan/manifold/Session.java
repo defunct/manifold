@@ -7,8 +7,7 @@ import java.nio.ByteBuffer;
  * 
  * @author Alan Gutierrez
  */
-public interface Session
-{
+public interface Session {
     /**
      * Accept a new conversation by instructing the selector thread to either
      * listen to the conversation socket or else send data over the conversation
@@ -31,10 +30,10 @@ public interface Session
      *            Data that has arrived over the conversation socket.
      */
     public void read(ByteBuffer data, Sender sender);
-    
+
     // TODO Document.
     public void terminate(Sender sender);
-    
+
     // TODO Document.
-   public void close();
+    public void close();
 }

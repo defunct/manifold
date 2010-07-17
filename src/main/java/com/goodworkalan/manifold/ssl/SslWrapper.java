@@ -13,8 +13,7 @@ import com.goodworkalan.manifold.Sender;
 import com.goodworkalan.manifold.Wrapper;
 
 // TODO Document.
-public class SslWrapper implements Wrapper
-{
+public class SslWrapper implements Wrapper {
     // TODO Document.
     private final SSLEngine sslEngine;
     
@@ -28,8 +27,7 @@ public class SslWrapper implements Wrapper
     private ByteBuffer encrypted;
 
     // TODO Document.
-    public SslWrapper(SSLEngine sslEngine)
-    {
+    public SslWrapper(SSLEngine sslEngine) {
         SSLSession sslSession = sslEngine.getSession();
         this.sslEngine = sslEngine;
         this.unencrypted = ByteBuffer.allocate(sslSession.getApplicationBufferSize());
@@ -39,35 +37,28 @@ public class SslWrapper implements Wrapper
     }
     
     // TODO Document.
-    public ByteBuffer[] wrap(ByteBuffer unwrapped, Sender sender)
-    {
-        try
-        {
+    public ByteBuffer[] wrap(ByteBuffer unwrapped, Sender sender) {
+        try {
             List<ByteBuffer> byteBuffers = new ArrayList<ByteBuffer>(); 
             SSLSession sslSession = sslEngine.getSession();
 
             int unwrappedLimit = unwrapped.limit();
-            while (unwrapped.remaining() != 0)
-            {
-                if (unwrapped.remaining() > sslSession.getApplicationBufferSize())
-                {
+            while (unwrapped.remaining() != 0) {
+                if (unwrapped.remaining() > sslSession.getApplicationBufferSize()) {
                     unwrapped.limit(unwrappedLimit - (unwrapped.remaining() - sslSession.getApplicationBufferSize()));
                 }
                 
 //                int slicePosition = encrypted.position();
                 SSLEngineResult result = sslEngine.wrap(unwrapped, encrypted);
-                switch (result.getHandshakeStatus())
-                {
+                switch (result.getHandshakeStatus()) {
                 case NEED_TASK:
                     Runnable runnable = null;
-                    while ((runnable = sslEngine.getDelegatedTask()) != null)
-                    {
+                    while ((runnable = sslEngine.getDelegatedTask()) != null) {
                         runnable.run();
                     }
                     break;
                 }
-                switch (result.getStatus())
-                {
+                switch (result.getStatus()) {
                 case OK:
 //                    int position = encrypted.position();
 //                    
@@ -90,37 +81,28 @@ public class SslWrapper implements Wrapper
             }
             
             return byteBuffers.toArray(new ByteBuffer[byteBuffers.size()]);
-        }
-        catch (SSLException e)
-        {
+        } catch (SSLException e) {
             return new ByteBuffer[0];
         }
     }
     
     // TODO Document.
-    public ByteBuffer[] unwrap(ByteBuffer wrapped, Sender sender)
-    {
-        try
-        {
+    public ByteBuffer[] unwrap(ByteBuffer wrapped, Sender sender) {
+        try {
             List<ByteBuffer> byteBuffers = new ArrayList<ByteBuffer>(); 
             SSLSession sslSession = sslEngine.getSession();
 
             int wrappedLimit = wrapped.limit();
-            while (wrapped.remaining() != 0)
-            {
+            while (wrapped.remaining() != 0) {
                 int incomingRemaining = incoming.remaining();
 
                 incoming.compact();
 
-                if (incomingRemaining < incoming.capacity() && wrappedLimit - wrapped.position() != 0)
-                {
+                if (incomingRemaining < incoming.capacity() && wrappedLimit - wrapped.position() != 0) {
                     int overflow = (wrappedLimit - wrapped.position()) - incoming.remaining();
-                    if (overflow > 0)
-                    {
+                    if (overflow > 0) {
                         wrapped.limit(wrapped.position() + incoming.remaining());
-                    }
-                    else
-                    {
+                    } else {
                         wrapped.limit(wrappedLimit);
                     }
                     incomingRemaining += wrapped.remaining();
@@ -131,18 +113,15 @@ public class SslWrapper implements Wrapper
                 
 //                int slicePosition = unencrypted.position();
                 SSLEngineResult result = sslEngine.unwrap(incoming, unencrypted);
-                switch (result.getHandshakeStatus())
-                {
+                switch (result.getHandshakeStatus()) {
                 case NEED_TASK:
                     Runnable runnable = null;
-                    while ((runnable = sslEngine.getDelegatedTask()) != null)
-                    {
+                    while ((runnable = sslEngine.getDelegatedTask()) != null) {
                         runnable.run();
                     }
                     break;
                 }
-                switch (result.getStatus())
-                {
+                switch (result.getStatus()) {
                 case OK:
 //                    int position = unencrypted.position();
 //                    
@@ -167,9 +146,7 @@ public class SslWrapper implements Wrapper
             }
             
             return byteBuffers.toArray(new ByteBuffer[byteBuffers.size()]);
-        }
-        catch (SSLException e)
-        {
+        } catch (SSLException e) {
             return new ByteBuffer[0];
         }
     }

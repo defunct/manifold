@@ -11,11 +11,10 @@ import com.goodworkalan.manifold.Sender;
 import com.goodworkalan.manifold.Wrapper;
 
 // TODO Document.
-public class SaslWrapper implements Wrapper
-{
+public class SaslWrapper implements Wrapper {
     // TODO Document.
     private final SaslServer saslServer;
-    
+
     // TODO Document.
     private byte[] temporary = new byte[1024];
     
@@ -29,52 +28,40 @@ public class SaslWrapper implements Wrapper
     private ByteBuffer incoming = ByteBuffer.allocate(1024);
 
     // TODO Document.
-    public SaslWrapper(SaslServer saslServer)
-    {
+    public SaslWrapper(SaslServer saslServer) {
         this.saslServer = saslServer;
     }
-    
+
     // TODO Document.
-    public ByteBuffer[] wrap(ByteBuffer unwrapped, Sender sender)
-    {
+    public ByteBuffer[] wrap(ByteBuffer unwrapped, Sender sender) {
         int size = unwrapped.remaining();
-        if (size < temporary.length)
-        {
+        if (size < temporary.length) {
             temporary = new byte[size];
         }
         unwrapped.get(temporary);
-        try
-        {
+        try {
             byte[] wrapped = saslServer.unwrap(temporary, 0, size);
             ByteBuffer out = ByteBuffer.allocate(4 + wrapped.length);
             out.putInt(wrapped.length);
             out.put(wrapped);
             out.flip();
             return new ByteBuffer[] { out };
-        }
-        catch (SaslException e)
-        {
+        } catch (SaslException e) {
             return new ByteBuffer[0];
         }
     }
     
     // TODO Document.
-    public ByteBuffer[] unwrap(ByteBuffer wrapped, Sender sender)
-    {
+    public ByteBuffer[] unwrap(ByteBuffer wrapped, Sender sender) {
 
-        try
-        {
+        try {
             List<ByteBuffer> byteBuffers = new ArrayList<ByteBuffer>();
-            for (;;)
-            {
-                if (incomingSize == 0)
-                {
+            for (;;) {
+                if (incomingSize == 0) {
                     int needed = 4 - incoming.remaining();
-                    if (needed > 0)
-                    {
+                    if (needed > 0) {
                         incoming.compact();
-                        while (needed-- != 0 && wrapped.remaining() != 0)
-                        {
+                        while (needed-- != 0 && wrapped.remaining() != 0) {
                             incoming.put(wrapped.get());
                         }
                         incoming.flip();
@@ -84,23 +71,18 @@ public class SaslWrapper implements Wrapper
                         incomingSize = incoming.getInt();
                     }
                 }
-                
-                if (incomingSize == 0)
-                {
+
+                if (incomingSize == 0) {
                     break;
                 }
 
                 int remaining = incoming.remaining() + wrapped.remaining();
-                if (remaining < incomingSize)
-                {
-                    if (incoming.capacity() < remaining)
-                    {
+                if (remaining < incomingSize) {
+                    if (incoming.capacity() < remaining) {
                         incoming.compact();
                         incoming.put(wrapped);
                         incoming.flip();
-                    }
-                    else
-                    {
+                    } else {
                         ByteBuffer newIncoming = ByteBuffer.allocate(remaining);
                         newIncoming.put(incoming);
                         newIncoming.put(wrapped);
@@ -108,14 +90,12 @@ public class SaslWrapper implements Wrapper
                     }
                     break;
                 }
-                if (temporary.length < incomingSize)
-                {
+                if (temporary.length < incomingSize) {
                     temporary = new byte[incomingSize];
                 }
                 int fromIncoming = Math.min(incoming.remaining(), incomingSize);
                 incoming.get(temporary, 0, fromIncoming);
-                if (fromIncoming < incomingSize)
-                {
+                if (fromIncoming < incomingSize) {
                     wrapped.get(temporary, fromIncoming, incomingSize - fromIncoming);
                 }
                 byteBuffers.add(ByteBuffer.wrap(saslServer.wrap(temporary, 0, incomingSize)));
@@ -123,9 +103,7 @@ public class SaslWrapper implements Wrapper
             }
 
             return byteBuffers.toArray(new ByteBuffer[byteBuffers.size()]);
-        }
-        catch (SaslException e)
-        {
+        } catch (SaslException e) {
             return new ByteBuffer[0];
         }
     }
